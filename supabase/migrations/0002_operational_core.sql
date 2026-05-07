@@ -310,7 +310,11 @@ create trigger trg_project_after_insert
 -- ─────────────────────────────────────────────────────────────────────────
 -- View: project_financials — feeds the Dashboard module without N+1.
 -- ─────────────────────────────────────────────────────────────────────────
-create or replace view public.project_financials as
+-- security_invoker = on ensures RLS policies on the underlying tables are
+-- evaluated under the calling user, not the view's definer.
+create or replace view public.project_financials
+with (security_invoker = on)
+as
 select
   p.id,
   p.organization_id,

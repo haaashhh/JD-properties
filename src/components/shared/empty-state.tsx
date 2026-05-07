@@ -19,7 +19,11 @@ export function EmptyState({
       <h3 className="mt-4 text-lg font-semibold">{title}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       {action ? (
-        <Button className="mt-4" render={<Link href={action.href}>{action.label}</Link>} />
+        <Button
+          nativeButton={false}
+          className="mt-4"
+          render={<Link href={action.href}>{action.label}</Link>}
+        />
       ) : null}
     </div>
   )

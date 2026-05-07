@@ -33,6 +33,7 @@ export function Topbar({ email, fullName }: { email: string; fullName?: string |
       </div>
       <div className="flex flex-1 items-center justify-end gap-2">
         <Button
+          nativeButton={false}
           render={
             <Link href="/deals/new">
               <Plus className="h-4 w-4" />
