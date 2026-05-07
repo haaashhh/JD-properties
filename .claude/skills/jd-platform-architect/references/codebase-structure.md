@@ -22,8 +22,10 @@ properties-by-jd/
 ├── supabase/
 │   ├── config.toml
 │   ├── migrations/               # Versioned SQL (source of truth for DB)
-│   │   ├── 0001_init.sql         # orgs, members, settings, signup trigger, RLS
-│   │   └── 0002_operational_core.sql  # property, deal_analysis (persisted ROI), project, budgets, project_financials view
+│   │   ├── 0001_init.sql                  # orgs, members, settings, signup trigger, RLS
+│   │   ├── 0002_operational_core.sql      # property, deal_analysis, comp, contractor, project, budgets, project_financials view
+│   │   ├── 0003_security_invoker_view.sql # advisor fix: project_financials → security_invoker
+│   │   └── 0004_deal_analyzer_v1.sql      # Deal-Analyzer rebase: drops persisted ROI trigger, adds deal_analysis_computed view, denormalizes org_id, generic `document` table, audit `deal_analysis_revision`, MLS/QB anchors
 │   └── seed.sql                  # (optional) default budget categories, room types
 ├── public/
 │   └── logo.svg

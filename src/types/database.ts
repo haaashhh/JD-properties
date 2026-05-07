@@ -90,52 +90,76 @@ export type Database = {
       comp: {
         Row: {
           address: string
+          adjustment_cents: number
+          adjustment_notes: string | null
           bathrooms: number | null
           bedrooms: number | null
+          condition: string | null
           created_at: string
           days_on_market: number | null
           deal_analysis_id: string
           distance_miles: number | null
+          external_id: string | null
           id: string
           included_in_arv: boolean
+          last_synced_at: string | null
           lot_size_sqft: number | null
           notes: string | null
+          organization_id: string
           sale_date: string | null
           sale_price_cents: number
+          source_provider: string | null
+          source_url: string | null
           sqft: number | null
           year_built: number | null
         }
         Insert: {
           address: string
+          adjustment_cents?: number
+          adjustment_notes?: string | null
           bathrooms?: number | null
           bedrooms?: number | null
+          condition?: string | null
           created_at?: string
           days_on_market?: number | null
           deal_analysis_id: string
           distance_miles?: number | null
+          external_id?: string | null
           id?: string
           included_in_arv?: boolean
+          last_synced_at?: string | null
           lot_size_sqft?: number | null
           notes?: string | null
+          organization_id: string
           sale_date?: string | null
           sale_price_cents: number
+          source_provider?: string | null
+          source_url?: string | null
           sqft?: number | null
           year_built?: number | null
         }
         Update: {
           address?: string
+          adjustment_cents?: number
+          adjustment_notes?: string | null
           bathrooms?: number | null
           bedrooms?: number | null
+          condition?: string | null
           created_at?: string
           days_on_market?: number | null
           deal_analysis_id?: string
           distance_miles?: number | null
+          external_id?: string | null
           id?: string
           included_in_arv?: boolean
+          last_synced_at?: string | null
           lot_size_sqft?: number | null
           notes?: string | null
+          organization_id?: string
           sale_date?: string | null
           sale_price_cents?: number
+          source_provider?: string | null
+          source_url?: string | null
           sqft?: number | null
           year_built?: number | null
         }
@@ -147,12 +171,27 @@ export type Database = {
             referencedRelation: "deal_analysis"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "comp_deal_analysis_id_fkey"
+            columns: ["deal_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "deal_analysis_computed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comp_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contractor: {
         Row: {
           company: string | null
           created_at: string
+          do_not_contact: boolean
           email: string | null
           id: string
           insurance_expiry: string | null
@@ -162,6 +201,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           phone: string | null
+          preferred_contact: string
           rating: number | null
           trade: string | null
           updated_at: string
@@ -169,6 +209,7 @@ export type Database = {
         Insert: {
           company?: string | null
           created_at?: string
+          do_not_contact?: boolean
           email?: string | null
           id?: string
           insurance_expiry?: string | null
@@ -178,6 +219,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           phone?: string | null
+          preferred_contact?: string
           rating?: number | null
           trade?: string | null
           updated_at?: string
@@ -185,6 +227,7 @@ export type Database = {
         Update: {
           company?: string | null
           created_at?: string
+          do_not_contact?: boolean
           email?: string | null
           id?: string
           insurance_expiry?: string | null
@@ -194,6 +237,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           phone?: string | null
+          preferred_contact?: string
           rating?: number | null
           trade?: string | null
           updated_at?: string
@@ -211,29 +255,37 @@ export type Database = {
       deal_analysis: {
         Row: {
           analysis_type: string
-          annualized_roi_pct: number | null
+          archived_at: string | null
+          archived_by: string | null
           arv_cents: number
           arv_percentage: number
           buy_agent_commission_pct: number | null
           buying_closing_costs_cents: number | null
+          cash_invested_cents: number | null
           created_at: string
           created_by: string | null
           financing_type: string | null
           holding_hoa_cents: number | null
           holding_insurance_cents: number | null
           holding_interest_cents: number | null
+          holding_other_cents: number
           holding_period_months: number | null
           holding_taxes_cents: number | null
           holding_utilities_cents: number | null
           id: string
           interest_rate: number | null
+          is_active: boolean
+          is_archived: boolean
           loan_amount_cents: number | null
+          loan_basis: string | null
           loan_term_months: number | null
+          loan_to_value_pct: number | null
           monthly_holding_cost_cents: number | null
           monthly_maintenance_cents: number | null
           monthly_rent_cents: number | null
-          net_profit_cents: number | null
+          name: string
           notes: string | null
+          organization_id: string
           origination_points: number | null
           other_loan_fees_cents: number | null
           property_id: string
@@ -243,37 +295,45 @@ export type Database = {
           refinance_ltv_pct: number | null
           refinance_term_years: number | null
           rehab_estimate_cents: number
-          roi_pct: number | null
           sell_agent_commission_pct: number | null
           selling_closing_costs_cents: number | null
+          staging_costs_cents: number
           updated_at: string
           vacancy_rate_pct: number | null
         }
         Insert: {
           analysis_type?: string
-          annualized_roi_pct?: number | null
+          archived_at?: string | null
+          archived_by?: string | null
           arv_cents: number
           arv_percentage?: number
           buy_agent_commission_pct?: number | null
           buying_closing_costs_cents?: number | null
+          cash_invested_cents?: number | null
           created_at?: string
           created_by?: string | null
           financing_type?: string | null
           holding_hoa_cents?: number | null
           holding_insurance_cents?: number | null
           holding_interest_cents?: number | null
+          holding_other_cents?: number
           holding_period_months?: number | null
           holding_taxes_cents?: number | null
           holding_utilities_cents?: number | null
           id?: string
           interest_rate?: number | null
+          is_active?: boolean
+          is_archived?: boolean
           loan_amount_cents?: number | null
+          loan_basis?: string | null
           loan_term_months?: number | null
+          loan_to_value_pct?: number | null
           monthly_holding_cost_cents?: number | null
           monthly_maintenance_cents?: number | null
           monthly_rent_cents?: number | null
-          net_profit_cents?: number | null
+          name?: string
           notes?: string | null
+          organization_id: string
           origination_points?: number | null
           other_loan_fees_cents?: number | null
           property_id: string
@@ -283,37 +343,45 @@ export type Database = {
           refinance_ltv_pct?: number | null
           refinance_term_years?: number | null
           rehab_estimate_cents: number
-          roi_pct?: number | null
           sell_agent_commission_pct?: number | null
           selling_closing_costs_cents?: number | null
+          staging_costs_cents?: number
           updated_at?: string
           vacancy_rate_pct?: number | null
         }
         Update: {
           analysis_type?: string
-          annualized_roi_pct?: number | null
+          archived_at?: string | null
+          archived_by?: string | null
           arv_cents?: number
           arv_percentage?: number
           buy_agent_commission_pct?: number | null
           buying_closing_costs_cents?: number | null
+          cash_invested_cents?: number | null
           created_at?: string
           created_by?: string | null
           financing_type?: string | null
           holding_hoa_cents?: number | null
           holding_insurance_cents?: number | null
           holding_interest_cents?: number | null
+          holding_other_cents?: number
           holding_period_months?: number | null
           holding_taxes_cents?: number | null
           holding_utilities_cents?: number | null
           id?: string
           interest_rate?: number | null
+          is_active?: boolean
+          is_archived?: boolean
           loan_amount_cents?: number | null
+          loan_basis?: string | null
           loan_term_months?: number | null
+          loan_to_value_pct?: number | null
           monthly_holding_cost_cents?: number | null
           monthly_maintenance_cents?: number | null
           monthly_rent_cents?: number | null
-          net_profit_cents?: number | null
+          name?: string
           notes?: string | null
+          organization_id?: string
           origination_points?: number | null
           other_loan_fees_cents?: number | null
           property_id?: string
@@ -323,18 +391,151 @@ export type Database = {
           refinance_ltv_pct?: number | null
           refinance_term_years?: number | null
           rehab_estimate_cents?: number
-          roi_pct?: number | null
           sell_agent_commission_pct?: number | null
           selling_closing_costs_cents?: number | null
+          staging_costs_cents?: number
           updated_at?: string
           vacancy_rate_pct?: number | null
         }
         Relationships: [
           {
+            foreignKeyName: "deal_analysis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "deal_analysis_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "property"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_analysis_revision: {
+        Row: {
+          deal_analysis_id: string
+          edited_at: string
+          edited_by: string | null
+          id: string
+          organization_id: string
+          snapshot: Json
+        }
+        Insert: {
+          deal_analysis_id: string
+          edited_at?: string
+          edited_by?: string | null
+          id?: string
+          organization_id: string
+          snapshot: Json
+        }
+        Update: {
+          deal_analysis_id?: string
+          edited_at?: string
+          edited_by?: string | null
+          id?: string
+          organization_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_analysis_revision_deal_analysis_id_fkey"
+            columns: ["deal_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "deal_analysis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_analysis_revision_deal_analysis_id_fkey"
+            columns: ["deal_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "deal_analysis_computed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_analysis_revision_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document: {
+        Row: {
+          created_at: string
+          document_type: string
+          entity_id: string
+          entity_type: string
+          external_envelope_id: string | null
+          external_provider: string | null
+          file_name: string
+          file_size_bytes: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          signature_status: string
+          signed_at: string | null
+          signers: Json | null
+          signing_url: string | null
+          storage_path: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          entity_id: string
+          entity_type: string
+          external_envelope_id?: string | null
+          external_provider?: string | null
+          file_name: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          signature_status?: string
+          signed_at?: string | null
+          signers?: Json | null
+          signing_url?: string | null
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          entity_id?: string
+          entity_type?: string
+          external_envelope_id?: string | null
+          external_provider?: string | null
+          file_name?: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          signature_status?: string
+          signed_at?: string | null
+          signers?: Json | null
+          signing_url?: string | null
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
             referencedColumns: ["id"]
           },
         ]
@@ -467,6 +668,8 @@ export type Database = {
           pipeline_stage: string
           property_id: string
           purchase_date: string | null
+          qb_class_name: string | null
+          qb_customer_id: string | null
           rehab_actual_end: string | null
           rehab_end_date: string | null
           rehab_start_date: string | null
@@ -496,6 +699,8 @@ export type Database = {
           pipeline_stage?: string
           property_id: string
           purchase_date?: string | null
+          qb_class_name?: string | null
+          qb_customer_id?: string | null
           rehab_actual_end?: string | null
           rehab_end_date?: string | null
           rehab_start_date?: string | null
@@ -525,6 +730,8 @@ export type Database = {
           pipeline_stage?: string
           property_id?: string
           purchase_date?: string | null
+          qb_class_name?: string | null
+          qb_customer_id?: string | null
           rehab_actual_end?: string | null
           rehab_end_date?: string | null
           rehab_start_date?: string | null
@@ -539,6 +746,13 @@ export type Database = {
             columns: ["deal_analysis_id"]
             isOneToOne: false
             referencedRelation: "deal_analysis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deal_analysis_id_fkey"
+            columns: ["deal_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "deal_analysis_computed"
             referencedColumns: ["id"]
           },
           {
@@ -678,6 +892,7 @@ export type Database = {
       }
       property: {
         Row: {
+          active_deal_analysis_id: string | null
           address_line1: string
           address_line2: string | null
           bathrooms: number | null
@@ -686,19 +901,28 @@ export type Database = {
           county: string | null
           created_at: string
           created_by: string | null
+          dedupe_key: string | null
+          external_id: string | null
           id: string
+          last_synced_at: string | null
+          latitude: number | null
+          longitude: number | null
           lot_size_sqft: number | null
+          mls_number: string | null
           notes: string | null
           organization_id: string
           property_type: string | null
           source: string | null
+          source_provider: string | null
           sqft: number | null
           state: string
+          thumbnail_url: string | null
           updated_at: string
           year_built: number | null
           zip: string
         }
         Insert: {
+          active_deal_analysis_id?: string | null
           address_line1: string
           address_line2?: string | null
           bathrooms?: number | null
@@ -707,19 +931,28 @@ export type Database = {
           county?: string | null
           created_at?: string
           created_by?: string | null
+          dedupe_key?: string | null
+          external_id?: string | null
           id?: string
+          last_synced_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
           lot_size_sqft?: number | null
+          mls_number?: string | null
           notes?: string | null
           organization_id: string
           property_type?: string | null
           source?: string | null
+          source_provider?: string | null
           sqft?: number | null
           state: string
+          thumbnail_url?: string | null
           updated_at?: string
           year_built?: number | null
           zip: string
         }
         Update: {
+          active_deal_analysis_id?: string | null
           address_line1?: string
           address_line2?: string | null
           bathrooms?: number | null
@@ -728,19 +961,41 @@ export type Database = {
           county?: string | null
           created_at?: string
           created_by?: string | null
+          dedupe_key?: string | null
+          external_id?: string | null
           id?: string
+          last_synced_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
           lot_size_sqft?: number | null
+          mls_number?: string | null
           notes?: string | null
           organization_id?: string
           property_type?: string | null
           source?: string | null
+          source_provider?: string | null
           sqft?: number | null
           state?: string
+          thumbnail_url?: string | null
           updated_at?: string
           year_built?: number | null
           zip?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "property_active_deal_analysis_id_fkey"
+            columns: ["active_deal_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "deal_analysis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_active_deal_analysis_id_fkey"
+            columns: ["active_deal_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "deal_analysis_computed"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "property_organization_id_fkey"
             columns: ["organization_id"]
@@ -773,6 +1028,91 @@ export type Database = {
       }
     }
     Views: {
+      deal_analysis_computed: {
+        Row: {
+          analysis_type: string | null
+          annualized_roi_pct: number | null
+          archived_at: string | null
+          archived_by: string | null
+          arv_cents: number | null
+          arv_percentage: number | null
+          buy_agent_commission_pct: number | null
+          buy_commission_cents: number | null
+          buying_closing_costs_cents: number | null
+          cash_invested_cents: number | null
+          comp_count: number | null
+          created_at: string | null
+          created_by: string | null
+          effective_cash_invested_cents: number | null
+          effective_loan_cents: number | null
+          effective_monthly_rent_cents: number | null
+          financing_type: string | null
+          holding_hoa_cents: number | null
+          holding_insurance_cents: number | null
+          holding_interest_cents: number | null
+          holding_other_cents: number | null
+          holding_period_months: number | null
+          holding_taxes_cents: number | null
+          holding_utilities_cents: number | null
+          id: string | null
+          interest_rate: number | null
+          is_active: boolean | null
+          is_archived: boolean | null
+          loan_amount_cents: number | null
+          loan_basis: string | null
+          loan_term_months: number | null
+          loan_to_value_pct: number | null
+          monthly_holding_cost_cents: number | null
+          monthly_maintenance_cents: number | null
+          monthly_rent_cents: number | null
+          mpp_cents: number | null
+          name: string | null
+          net_profit_cents: number | null
+          notes: string | null
+          organization_id: string | null
+          origination_fee_cents: number | null
+          origination_points: number | null
+          other_loan_fees_cents: number | null
+          profit_margin_pct: number | null
+          property_id: string | null
+          property_mgmt_fee_pct: number | null
+          purchase_price_cents: number | null
+          refi_loan_amount_cents: number | null
+          refinance_interest_rate: number | null
+          refinance_ltv_pct: number | null
+          refinance_term_years: number | null
+          rehab_estimate_cents: number | null
+          roi_pct: number | null
+          sell_agent_commission_pct: number | null
+          sell_commission_cents: number | null
+          selling_closing_costs_cents: number | null
+          staging_costs_cents: number | null
+          suggested_arv_cents: number | null
+          total_acquisition_cents: number | null
+          total_holding_cents: number | null
+          total_interest_cents: number | null
+          total_project_cost_cents: number | null
+          total_selling_cents: number | null
+          updated_at: string | null
+          vacancy_rate_pct: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_analysis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_analysis_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_financials: {
         Row: {
           actual_purchase_price_cents: number | null

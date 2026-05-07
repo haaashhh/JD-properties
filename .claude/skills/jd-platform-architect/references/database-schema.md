@@ -1,5 +1,35 @@
 # Database Schema — Complete PostgreSQL Schema
 
+> **Status (2026-05-07):** Migrations 0001-0004 are applied. The deal-analyzer
+> slice was rebased in 0004 with four deviations from the original draft below
+> — all driven by a Module 2 architecture review:
+>
+> 1. **Deal-analyzer math is computed-on-read.** `deal_analysis` no longer
+>    stores `net_profit_cents` / `roi_pct` / `annualized_roi_pct`. The
+>    `compute_deal_metrics` trigger is dropped (it had a div-by-zero bug on
+>    cash deals). Use the `deal_analysis_computed` view (`security_invoker
+>    = on`) instead. ROI returns NULL when the cash-invested denominator ≤
+>    0 — there's no 1-cent hack.
+> 2. **`organization_id` is denormalized** onto `deal_analysis`, `comp`,
+>    `document`, and `deal_analysis_revision`. RLS is single-hop. Triggers
+>    auto-populate on INSERT when not supplied.
+> 3. **Documents are generic + polymorphic.** A single `document` table
+>    with `(entity_type, entity_id)` and DocuSign envelope fields replaces
+>    per-module document tables. The spec's `deal_analysis_document` was
+>    folded into this.
+> 4. **Holding costs stay broken-out.** Five line-item columns + a new
+>    `holding_other_cents` catch-all + a generated `monthly_holding_cost_cents`
+>    sum. QB reconciliation in Module 6 needs the breakdown.
+>
+> Other 0004 adds: `name`/`is_archived`/`archived_at`/`archived_by`/`is_active`/
+> `cash_invested_cents`/`staging_costs_cents`/`loan_to_value_pct`/`loan_basis`
+> on `deal_analysis`; `condition`/`adjustment_cents`/`adjustment_notes`/
+> `source_url`/MLS-sync fields on `comp`; `mls_number`/`thumbnail_url`/
+> `latitude`/`longitude`/`active_deal_analysis_id`/`dedupe_key` on `property`;
+> `qb_class_name`/`qb_customer_id` on `project`; `preferred_contact`/
+> `do_not_contact` on `contractor`; new `deal_analysis_revision` audit table
+> populated by an AFTER UPDATE snapshot trigger.
+
 ## Table of Contents
 1. [Schema Overview](#schema-overview)
 2. [Migration Order](#migration-order)
@@ -43,24 +73,20 @@ User (auth.users)
 
 ---
 
-## Migration Order
+## Migration Order (actual)
 
-Run migrations in this order to satisfy foreign key dependencies:
+Live migration files in `supabase/migrations/`:
 
-1. `001_organizations` — org, org_member
-2. `002_properties` — property table
-3. `003_deal_analysis` — deal_analysis, comp
-4. `004_budget_categories` — budget_category (seed defaults)
-5. `005_contractors` — contractor
-6. `006_projects` — project
-7. `007_project_budgets` — project_budget, project_expense
-8. `008_project_management` — project_milestone, project_task, project_photo
-9. `009_lender_draws` — lender_draw, lender_draw_line
-10. `010_design_boards` — design_board, product, project_product_selection
-11. `011_quickbooks` — qb_connection, qb_transaction, qb_sync_log
-12. `012_views` — materialized/regular views for dashboard KPIs
-13. `013_rls_policies` — all RLS policies
-14. `014_seed_data` — default budget categories, room types
+1. `0001_init.sql` — `organization`, `organization_member`, `organization_settings`, `user_settings`, `auth.users` signup trigger, RLS scaffolding.
+2. `0002_operational_core.sql` — `property`, `deal_analysis`, `comp`, `contractor`, `budget_category` (seeded contingency row), `project` (with auto-contingency trigger), `project_budget`, `project_expense`, original `project_financials` view, role-aware RLS.
+3. `0003_security_invoker_view.sql` — flips `project_financials` to `security_invoker = on` (Supabase advisor fix).
+4. `0004_deal_analyzer_v1.sql` — Deal-Analyzer rebase per Module 2 architecture review (see status note above). Drops persisted ROI columns + `compute_deal_metrics` trigger. Adds `deal_analysis_computed` view. Denormalizes `organization_id`. Creates generic `document` table and `deal_analysis_revision` audit table. Closes spec gaps (mls_number, thumbnail, condition, adjustments, etc.) and folds in QB lineage anchors and MLS sync fields.
+
+Future modules add migrations on top:
+- Module 3: project_milestone, project_task, project_photo
+- Module 4: budget_template, budget_template_line, lender_draw, lender_draw_line
+- Module 6: qb_connection, qb_transaction, qb_sync_log
+- Module 7: design_board, product, project_product_selection
 
 ---
 
