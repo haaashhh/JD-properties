@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"/Users/achrafrachek/Desktop/Projects\" -maxdepth 6 -name \"SKILL.md\" 2>/dev/null | sort)",
+      "Read(//Users/achrafrachek/Desktop/Projects/**)",
+      "Bash(find \"/Users/achrafrachek/.claude\" -maxdepth 6 -name \"SKILL.md\" 2>/dev/null | sort)",
+      "Read(//Users/achrafrachek/.claude/**)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git fetch *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(npm --version)",
+      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --yes)",
+      "Bash(npx --yes create-next-app@latest _scaffold --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --yes)",
+      "Bash(npx --yes create-next-app@latest properties-by-jd-temp --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --yes)",
+      "Bash(rm .gitignore)",
+      "Bash(mv properties-by-jd-temp/.gitignore .)",
+      "Bash(mv properties-by-jd-temp/.next .)",
+      "Bash(mv properties-by-jd-temp/AGENTS.md .)",
+      "Bash(mv properties-by-jd-temp/CLAUDE.md .)",
+      "Bash(npx --yes shadcn@latest init --yes --base-color neutral)",
+      "Bash(npx --yes shadcn@latest init --help)",
+      "Bash(npx --yes shadcn@latest init --defaults --yes)",
+      "Bash(npx --yes shadcn@latest add card input label dropdown-menu avatar dialog sonner skeleton sheet badge separator tabs tooltip select form textarea popover checkbox table --yes)",
+      "Bash(npx --yes shadcn@latest add sidebar command --yes)",
+      "Bash(npm install *)",
+      "Bash(npx --yes shadcn@latest add form --yes)",
+      "Bash(supabase --version)"
+    ]
+  }
+}
