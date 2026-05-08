@@ -92,16 +92,19 @@ export function calculateFlipResults(input: FlipInputs): FlipResults {
   const effective_cash_invested_cents =
     input.cash_invested_cents ?? total_project_cost_cents - loanCents
 
-  // Null-safe denom guards mirror the SQL view.
-  const roi_pct =
+  // Null-safe denom guards mirror the SQL view. The view rounds each output
+  // independently from the raw ratio — DO NOT compute annualized from the
+  // already-rounded roi_pct; that introduces a 0.01 drift.
+  const roiRaw =
     effective_cash_invested_cents <= 0
       ? null
-      : round2((net_profit_cents / effective_cash_invested_cents) * 100)
+      : (net_profit_cents / effective_cash_invested_cents) * 100
+  const roi_pct = roiRaw == null ? null : round2(roiRaw)
 
   const annualized_roi_pct =
-    months <= 0 || roi_pct == null
+    months <= 0 || roiRaw == null
       ? null
-      : round2((roi_pct * 365) / (months * 30.44))
+      : round2((roiRaw * 365) / (months * 30.44))
 
   const profit_margin_pct =
     input.arv_cents === 0
