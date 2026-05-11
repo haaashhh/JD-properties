@@ -3,15 +3,16 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 
 const bodySchema = z.object({
-  bucket: z.enum(['project-photos']),
+  bucket: z.enum(['project-photos', 'receipts']),
   project_id: z.string().uuid(),
   filename: z.string().min(1).max(200),
   phase: z.enum(['before', 'during', 'after']).optional(),
 })
 
-// Issues a one-shot signed upload URL for the project-photos bucket. The
-// storage RLS policies enforce that the path's first segment is one of the
-// user's org IDs; we build the path here so the client can't tamper with it.
+// Issues a one-shot signed upload URL for either the project-photos bucket
+// (room/phase tagged) or the receipts bucket (per-expense). Storage RLS
+// enforces that the path's first segment is one of the user's org IDs; we
+// build the path server-side so the client can't tamper with it.
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const {
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
   }
 
-  // Confirm the user belongs to the org that owns this project.
+  // Confirm the user's org owns this project (RLS will reject reads otherwise).
   const { data: project } = await supabase
     .from('project')
     .select('organization_id')
@@ -38,8 +39,13 @@ export async function POST(request: NextRequest) {
   const ext = parsed.data.filename.split('.').pop()?.toLowerCase() ?? 'jpg'
   const safeExt = ext.replace(/[^a-z0-9]/g, '') || 'jpg'
   const uuid = crypto.randomUUID()
-  const phasePart = parsed.data.phase ?? 'during'
-  const path = `${project.organization_id}/${parsed.data.project_id}/${phasePart}/${uuid}.${safeExt}`
+
+  // Path layout per bucket:
+  //   project-photos: {org_id}/{project_id}/{phase}/{uuid}.{ext}
+  //   receipts:       {org_id}/{project_id}/expenses/{uuid}.{ext}
+  const pathSegment =
+    parsed.data.bucket === 'project-photos' ? parsed.data.phase ?? 'during' : 'expenses'
+  const path = `${project.organization_id}/${parsed.data.project_id}/${pathSegment}/${uuid}.${safeExt}`
 
   const { data, error } = await supabase.storage
     .from(parsed.data.bucket)

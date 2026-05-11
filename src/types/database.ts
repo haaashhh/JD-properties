@@ -87,6 +87,95 @@ export type Database = {
           },
         ]
       }
+      budget_template: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_archived: boolean
+          name: string
+          organization_id: string | null
+          scope_tier: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_archived?: boolean
+          name: string
+          organization_id?: string | null
+          scope_tier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_archived?: boolean
+          name?: string
+          organization_id?: string | null
+          scope_tier?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_template_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_template_line: {
+        Row: {
+          budget_category_id: string
+          budget_template_id: string
+          default_amount_cents: number
+          id: string
+          notes: string | null
+          per_sqft_rate_cents: number
+          sort_order: number
+        }
+        Insert: {
+          budget_category_id: string
+          budget_template_id: string
+          default_amount_cents?: number
+          id?: string
+          notes?: string | null
+          per_sqft_rate_cents?: number
+          sort_order?: number
+        }
+        Update: {
+          budget_category_id?: string
+          budget_template_id?: string
+          default_amount_cents?: number
+          id?: string
+          notes?: string | null
+          per_sqft_rate_cents?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_template_line_budget_category_id_fkey"
+            columns: ["budget_category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_category"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_template_line_budget_template_id_fkey"
+            columns: ["budget_template_id"]
+            isOneToOne: false
+            referencedRelation: "budget_template"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comp: {
         Row: {
           address: string
@@ -540,6 +629,122 @@ export type Database = {
           },
         ]
       }
+      lender_draw: {
+        Row: {
+          amount_approved_cents: number | null
+          amount_requested_cents: number
+          created_at: string
+          disbursement_date: string | null
+          draw_number: number
+          id: string
+          inspection_date: string | null
+          inspector_name: string | null
+          notes: string | null
+          organization_id: string
+          project_id: string
+          request_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_approved_cents?: number | null
+          amount_requested_cents: number
+          created_at?: string
+          disbursement_date?: string | null
+          draw_number: number
+          id?: string
+          inspection_date?: string | null
+          inspector_name?: string | null
+          notes?: string | null
+          organization_id: string
+          project_id: string
+          request_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_approved_cents?: number | null
+          amount_requested_cents?: number
+          created_at?: string
+          disbursement_date?: string | null
+          draw_number?: number
+          id?: string
+          inspection_date?: string | null
+          inspector_name?: string | null
+          notes?: string | null
+          organization_id?: string
+          project_id?: string
+          request_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lender_draw_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lender_draw_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lender_draw_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_financials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lender_draw_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lender_draw_line: {
+        Row: {
+          amount_cents: number
+          budget_category_id: string
+          id: string
+          lender_draw_id: string
+        }
+        Insert: {
+          amount_cents: number
+          budget_category_id: string
+          id?: string
+          lender_draw_id: string
+        }
+        Update: {
+          amount_cents?: number
+          budget_category_id?: string
+          id?: string
+          lender_draw_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lender_draw_line_budget_category_id_fkey"
+            columns: ["budget_category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_category"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lender_draw_line_lender_draw_id_fkey"
+            columns: ["lender_draw_id"]
+            isOneToOne: false
+            referencedRelation: "lender_draw"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization: {
         Row: {
           created_at: string
@@ -784,6 +989,7 @@ export type Database = {
           estimated_cents: number
           id: string
           notes: string | null
+          organization_id: string
           project_id: string
           updated_at: string
         }
@@ -793,6 +999,7 @@ export type Database = {
           estimated_cents?: number
           id?: string
           notes?: string | null
+          organization_id: string
           project_id: string
           updated_at?: string
         }
@@ -802,6 +1009,7 @@ export type Database = {
           estimated_cents?: number
           id?: string
           notes?: string | null
+          organization_id?: string
           project_id?: string
           updated_at?: string
         }
@@ -811,6 +1019,13 @@ export type Database = {
             columns: ["budget_category_id"]
             isOneToOne: false
             referencedRelation: "budget_category"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_budget_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
             referencedColumns: ["id"]
           },
           {
@@ -845,6 +1060,7 @@ export type Database = {
           description: string | null
           expense_date: string
           id: string
+          organization_id: string
           payment_method: string | null
           project_id: string
           receipt_url: string | null
@@ -859,6 +1075,7 @@ export type Database = {
           description?: string | null
           expense_date: string
           id?: string
+          organization_id: string
           payment_method?: string | null
           project_id: string
           receipt_url?: string | null
@@ -873,6 +1090,7 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          organization_id?: string
           payment_method?: string | null
           project_id?: string
           receipt_url?: string | null
@@ -885,6 +1103,13 @@ export type Database = {
             columns: ["budget_category_id"]
             isOneToOne: false
             referencedRelation: "budget_category"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_expense_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
             referencedColumns: ["id"]
           },
           {
@@ -1393,6 +1618,18 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      project_budget_summary: {
+        Row: {
+          actual_cents: number | null
+          budget_category_id: string | null
+          estimated_cents: number | null
+          percent_spent: number | null
+          project_id: string | null
+          status: string | null
+          variance_cents: number | null
+        }
+        Relationships: []
       }
       project_financials: {
         Row: {

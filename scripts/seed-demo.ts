@@ -83,39 +83,45 @@ const CONTRACTORS: { key: ContractorKey; name: string; company: string; trade: s
 ]
 
 // ─── 3. Budget categories (org-scoped) ──────────────────────────────────
-const BUDGET_CATEGORIES = [
-  { name: 'Demo',         group: 'interior' },
-  { name: 'Permits',      group: 'soft_costs' },
-  { name: 'Roof',         group: 'exterior' },
-  { name: 'Siding',       group: 'exterior' },
-  { name: 'Windows',      group: 'exterior' },
-  { name: 'Electrical',   group: 'mechanical' },
-  { name: 'Plumbing',     group: 'mechanical' },
-  { name: 'HVAC',         group: 'mechanical' },
-  { name: 'Drywall',      group: 'interior' },
-  { name: 'Kitchen',      group: 'interior' },
-  { name: 'Bathrooms',    group: 'interior' },
-  { name: 'Flooring',     group: 'interior' },
-  { name: 'Paint',        group: 'interior' },
-  { name: 'Landscaping',  group: 'exterior' },
+// Budget categories — looked up by name from the system rows seeded in
+// migration 0006_budget_v1.sql (is_default=true, organization_id IS NULL).
+// We no longer create org-scoped duplicates; the existing RLS on
+// budget_category returns NULL-org rows to every authenticated user.
+const BUDGET_CATEGORY_NAMES = [
+  'Demo / Cleanup',
+  'Permits',
+  'Roof',
+  'Siding / Exterior Walls',
+  'Windows',
+  'Electrical',
+  'Plumbing',
+  'HVAC',
+  'Drywall',
+  'Kitchen',
+  'Bathrooms',
+  'Flooring',
+  'Interior Paint',
+  'Landscaping',
 ] as const
 
-// Heavy-rehab default amounts for a ~1,500 sqft house (from agent research).
+// Heavy-rehab default amounts for a ~1,500 sqft house. Proportions match
+// the per_sqft_rate_cents on the system 'Heavy Rehab' budget_template
+// seeded in 0006.
 const BUDGET_DEFAULTS: Record<string, number> = {
-  Demo: 4800,
-  Permits: 2400,
-  Roof: 9500,
-  Siding: 7200,
-  Windows: 6800,
-  Electrical: 8500,
-  Plumbing: 9200,
-  HVAC: 8800,
-  Drywall: 5400,
-  Kitchen: 18500,
-  Bathrooms: 11200,
-  Flooring: 10800,
-  Paint: 6400,
-  Landscaping: 3800,
+  'Demo / Cleanup': 4800,
+  'Permits': 2400,
+  'Roof': 9500,
+  'Siding / Exterior Walls': 7200,
+  'Windows': 6800,
+  'Electrical': 8500,
+  'Plumbing': 9200,
+  'HVAC': 8800,
+  'Drywall': 5400,
+  'Kitchen': 18500,
+  'Bathrooms': 11200,
+  'Flooring': 10800,
+  'Interior Paint': 6400,
+  'Landscaping': 3800,
 }
 
 // ─── 4. Project scenarios ───────────────────────────────────────────────
@@ -456,8 +462,8 @@ async function main() {
   console.log('\nWiping existing data in this org…')
   await wipeOrgData(orgId)
 
-  console.log('\nSeeding budget categories…')
-  const categoryByName = await seedBudgetCategories(orgId)
+  console.log('\nLooking up system budget categories…')
+  const categoryByName = await lookupSystemCategories()
 
   console.log('Seeding contractors…')
   const contractors = await seedContractors(orgId)
@@ -530,20 +536,22 @@ async function wipeOrgData(orgId: string) {
   await admin.from('budget_category').delete().eq('organization_id', orgId)
 }
 
-async function seedBudgetCategories(orgId: string): Promise<Map<string, string>> {
-  const rows = BUDGET_CATEGORIES.map((c, idx) => ({
-    organization_id: orgId,
-    name: c.name,
-    group_name: c.group,
-    sort_order: idx,
-    is_default: false,
-  }))
-  const { data, error } = await admin.from('budget_category').insert(rows).select('id, name')
-  if (error || !data) throw new Error(`budget_category insert failed: ${error?.message}`)
-  const map = new Map(data.map((r) => [r.name, r.id]))
-  // Add the universal contingency row's ID so the auto-contingency trigger's
-  // budget line line up — the migration seeded its UUID at all-zeros.
-  map.set('Contingency', '00000000-0000-0000-0000-000000000001')
+async function lookupSystemCategories(): Promise<Map<string, string>> {
+  const { data, error } = await admin
+    .from('budget_category')
+    .select('id, name')
+    .is('organization_id', null)
+    .eq('is_default', true)
+  if (error || !data) throw new Error(`budget_category lookup failed: ${error?.message}`)
+  const map = new Map(data.map((r) => [r.name as string, r.id as string]))
+  // Sanity check: every name we plan to seed expenses against must exist.
+  for (const name of BUDGET_CATEGORY_NAMES) {
+    if (!map.has(name)) {
+      throw new Error(
+        `System category '${name}' missing. Did migration 0006 apply? Run \`supabase db push\` first.`
+      )
+    }
+  }
   return map
 }
 
@@ -729,10 +737,10 @@ async function seedBudgetsAndExpenses(
     const baseTotal = Object.values(BUDGET_DEFAULTS).reduce((a, b) => a + b, 0)
     const scale = p.scenario.rehabDollars / baseTotal
 
-    const budgetRows = BUDGET_CATEGORIES.map((cat) => ({
+    const budgetRows = BUDGET_CATEGORY_NAMES.map((name) => ({
       project_id: p.id,
-      budget_category_id: categoryByName.get(cat.name)!,
-      estimated_cents: dollars(Math.round(BUDGET_DEFAULTS[cat.name] * scale)),
+      budget_category_id: categoryByName.get(name)!,
+      estimated_cents: dollars(Math.round(BUDGET_DEFAULTS[name] * scale)),
       notes: null,
     }))
     const { error: budgetErr } = await admin.from('project_budget').insert(budgetRows)
@@ -753,14 +761,14 @@ async function seedBudgetsAndExpenses(
       payment_method: 'credit_card' | 'check' | 'lender_draw'
       created_by: string
     }> = []
-    for (const cat of BUDGET_CATEGORIES) {
-      const budget = BUDGET_DEFAULTS[cat.name] * scale
+    for (const name of BUDGET_CATEGORY_NAMES) {
+      const budget = BUDGET_DEFAULTS[name] * scale
       // Apply category-level variance: kitchen and bathrooms tend to come in over;
       // landscaping tends to come in under. Others scatter ±15%.
       let multiplier = ratio
-      if (cat.name === 'Kitchen') multiplier *= 1.12
-      else if (cat.name === 'Bathrooms') multiplier *= 1.08
-      else if (cat.name === 'Landscaping') multiplier *= 0.78
+      if (name === 'Kitchen') multiplier *= 1.12
+      else if (name === 'Bathrooms') multiplier *= 1.08
+      else if (name === 'Landscaping') multiplier *= 0.78
       else multiplier *= 0.88 + Math.random() * 0.2
 
       const actual = Math.round(budget * multiplier)
@@ -771,18 +779,18 @@ async function seedBudgetsAndExpenses(
       const perLine = Math.floor(actual / lineCount)
 
       for (let i = 0; i < lineCount; i++) {
-        const vendor = vendorForCategory(cat.name)
+        const vendor = vendorForCategory(name)
         const days = p.scenario.rehabStartDaysAgo
           ? Math.max(2, p.scenario.rehabStartDaysAgo - Math.floor(Math.random() * 60))
           : 30
         expenseRows.push({
           project_id: p.id,
-          budget_category_id: categoryByName.get(cat.name)!,
+          budget_category_id: categoryByName.get(name)!,
           amount_cents: dollars(perLine + (i === lineCount - 1 ? actual - perLine * lineCount : 0)),
           expense_date: dateAgo(days),
           vendor_name: vendor,
-          description: `${cat.name} — ${vendor}`,
-          payment_method: cat.name === 'Permits' ? 'check' : Math.random() > 0.4 ? 'credit_card' : 'lender_draw',
+          description: `${name} — ${vendor}`,
+          payment_method: name === 'Permits' ? 'check' : Math.random() > 0.4 ? 'credit_card' : 'lender_draw',
           created_by: userId,
         })
       }
@@ -814,21 +822,21 @@ function expenseRatioForStage(stage: string): number {
 
 function vendorForCategory(name: string): string {
   switch (name) {
-    case 'Demo':         return 'Keystone Build Group LLC'
-    case 'Permits':      return 'City Permitting Office'
-    case 'Roof':         return 'Apex Roofing & Restoration'
-    case 'Siding':       return 'Apex Roofing & Restoration'
-    case 'Windows':      return 'Pella Window Solutions'
-    case 'Electrical':   return 'Voltmark Electric Co'
-    case 'Plumbing':     return 'Hill Country Plumbing LLC'
-    case 'HVAC':         return 'Northstar HVAC Solutions'
-    case 'Drywall':      return 'Smooth Finish Drywall LLC'
-    case 'Kitchen':      return 'Heritage Cabinet Works'
-    case 'Bathrooms':    return 'Rivertown Tile & Stone'
-    case 'Flooring':     return 'Plank & Tile Floor Co'
-    case 'Paint':        return 'Sterling Painters LLC'
-    case 'Landscaping':  return 'Greenleaf Landscape Co'
-    default:             return 'Home Depot Pro'
+    case 'Demo / Cleanup':           return 'Keystone Build Group LLC'
+    case 'Permits':                  return 'City Permitting Office'
+    case 'Roof':                     return 'Apex Roofing & Restoration'
+    case 'Siding / Exterior Walls':  return 'Apex Roofing & Restoration'
+    case 'Windows':                  return 'Pella Window Solutions'
+    case 'Electrical':               return 'Voltmark Electric Co'
+    case 'Plumbing':                 return 'Hill Country Plumbing LLC'
+    case 'HVAC':                     return 'Northstar HVAC Solutions'
+    case 'Drywall':                  return 'Smooth Finish Drywall LLC'
+    case 'Kitchen':                  return 'Heritage Cabinet Works'
+    case 'Bathrooms':                return 'Rivertown Tile & Stone'
+    case 'Flooring':                 return 'Plank & Tile Floor Co'
+    case 'Interior Paint':           return 'Sterling Painters LLC'
+    case 'Landscaping':              return 'Greenleaf Landscape Co'
+    default:                         return 'Home Depot Pro'
   }
 }
 
