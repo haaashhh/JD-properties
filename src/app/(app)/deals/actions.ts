@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createDealSchema, dealFormSchema, type CreateDealInput } from '@/types/schemas/deal'
+import type { PipelineStage } from '@/lib/constants'
 
 export type ActionResult<T = unknown> = ({ ok: true } & T) | { error: string }
 
@@ -299,4 +300,63 @@ export async function toggleCompIncluded(
 
   revalidatePath(`/deals/${dealId}`)
   return { ok: true }
+}
+
+// ─────────────────────────── Promote to project ───────────────────────────
+const promoteSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  pipeline_stage: z.string().optional(),
+})
+
+export async function promoteDealToProject(
+  dealId: string,
+  input: z.infer<typeof promoteSchema> = {}
+): Promise<ActionResult<{ projectId: string }>> {
+  const parsed = promoteSchema.safeParse(input)
+  if (!parsed.success) return { error: 'Invalid input.' }
+
+  const session = await getUserAndOrg()
+  if ('error' in session) return { error: session.error }
+  const { supabase, user, membership } = session
+
+  const { data: deal, error: dealErr } = await supabase
+    .from('deal_analysis')
+    .select('id, property_id, organization_id, name, rehab_estimate_cents')
+    .eq('id', dealId)
+    .single()
+  if (dealErr || !deal) return { error: 'Deal not found.' }
+
+  // Reuse an existing project linked to this deal if there is one.
+  const { data: existing } = await supabase
+    .from('project')
+    .select('id')
+    .eq('deal_analysis_id', dealId)
+    .limit(1)
+    .maybeSingle()
+  if (existing) {
+    return { ok: true, projectId: existing.id }
+  }
+
+  const projectName = parsed.data.name ?? deal.name ?? 'New project'
+  const startStage = (parsed.data.pipeline_stage ?? 'purchased') as PipelineStage
+
+  const { data: project, error: projErr } = await supabase
+    .from('project')
+    .insert({
+      organization_id: membership.organization_id,
+      property_id: deal.property_id,
+      deal_analysis_id: deal.id,
+      name: projectName,
+      pipeline_stage: startStage,
+      created_by: user.id,
+    })
+    .select('id')
+    .single()
+  if (projErr || !project) return { error: projErr?.message ?? 'Could not promote deal.' }
+
+  revalidatePath('/deals')
+  revalidatePath('/projects')
+  revalidatePath(`/deals/${dealId}`)
+  revalidatePath(`/projects/${project.id}`)
+  return { ok: true, projectId: project.id }
 }

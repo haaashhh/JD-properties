@@ -74,3 +74,69 @@ export type BudgetCategoryGroup = (typeof BUDGET_CATEGORY_GROUPS)[number]['value
 
 export const ORG_ROLES = ['owner', 'admin', 'member', 'designer'] as const
 export type OrgRole = (typeof ORG_ROLES)[number]
+
+// Pipeline phase mapping — collapses 11 fine-grained stages into 4 phases
+// for the kanban (4 columns by default) and the dashboard donut. Keep in
+// lockstep with the `pipeline_phase` CASE expression in the project_summary
+// view (supabase/migrations/0005_projects_v1.sql).
+export const PIPELINE_PHASES = {
+  acquisition: ['lead', 'analyzing', 'offer_made', 'under_contract'],
+  rehab: ['purchased', 'in_rehab', 'punch_list'],
+  listing: ['listed', 'under_contract_sale'],
+  sold: ['sold', 'portfolio'],
+} as const
+
+export type PipelinePhase = keyof typeof PIPELINE_PHASES
+
+export const PIPELINE_PHASE_LABELS: Record<PipelinePhase, string> = {
+  acquisition: 'Acquisition',
+  rehab: 'Rehab',
+  listing: 'Listing',
+  sold: 'Sold',
+}
+
+// Reverse lookup: stage → phase.
+export function phaseForStage(stage: PipelineStage): PipelinePhase | null {
+  for (const [phase, stages] of Object.entries(PIPELINE_PHASES) as [
+    PipelinePhase,
+    readonly string[]
+  ][]) {
+    if (stages.includes(stage)) return phase
+  }
+  return null
+}
+
+// Stage-aging visual indicator thresholds (days at current stage).
+export const STAGE_AGING_THRESHOLDS = {
+  yellow: 30,
+  orange: 60,
+  red: 90,
+} as const
+
+export type StageAgingLevel = 'fresh' | 'yellow' | 'orange' | 'red'
+
+export function stageAgingLevel(daysAtStage: number): StageAgingLevel {
+  if (daysAtStage >= STAGE_AGING_THRESHOLDS.red) return 'red'
+  if (daysAtStage >= STAGE_AGING_THRESHOLDS.orange) return 'orange'
+  if (daysAtStage >= STAGE_AGING_THRESHOLDS.yellow) return 'yellow'
+  return 'fresh'
+}
+
+// Task category / status / priority enums (mirror the DB CHECK constraints).
+export const TASK_CATEGORIES = ['pre_purchase', 'rehab', 'pre_sale', 'admin'] as const
+export type TaskCategory = (typeof TASK_CATEGORIES)[number]
+export const TASK_STATUSES = ['todo', 'in_progress', 'done'] as const
+export type TaskStatus = (typeof TASK_STATUSES)[number]
+export const TASK_PRIORITIES = ['low', 'medium', 'high'] as const
+export type TaskPriority = (typeof TASK_PRIORITIES)[number]
+
+export const MILESTONE_STATUSES = [
+  'not_started',
+  'in_progress',
+  'complete',
+  'blocked',
+] as const
+export type MilestoneStatus = (typeof MILESTONE_STATUSES)[number]
+
+export const PHOTO_PHASES = ['before', 'during', 'after'] as const
+export type PhotoPhase = (typeof PHOTO_PHASES)[number]

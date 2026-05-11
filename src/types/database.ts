@@ -675,7 +675,9 @@ export type Database = {
           rehab_start_date: string | null
           sale_date: string | null
           stage_changed_at: string
+          stage_history: Json
           status: string
+          target_close_date: string | null
           updated_at: string
         }
         Insert: {
@@ -706,7 +708,9 @@ export type Database = {
           rehab_start_date?: string | null
           sale_date?: string | null
           stage_changed_at?: string
+          stage_history?: Json
           status?: string
+          target_close_date?: string | null
           updated_at?: string
         }
         Update: {
@@ -737,7 +741,9 @@ export type Database = {
           rehab_start_date?: string | null
           sale_date?: string | null
           stage_changed_at?: string
+          stage_history?: Json
           status?: string
+          target_close_date?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -821,6 +827,13 @@ export type Database = {
             referencedRelation: "project_financials"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "project_budget_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_summary"
+            referencedColumns: ["id"]
+          },
         ]
       }
       project_expense: {
@@ -886,6 +899,274 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "project_financials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_expense_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_milestone: {
+        Row: {
+          completed_at: string | null
+          contractor_id: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          project_id: string
+          sort_order: number
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          contractor_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          project_id: string
+          sort_order?: number
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          contractor_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          project_id?: string
+          sort_order?: number
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestone_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractor"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestone_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestone_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestone_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_financials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestone_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_photo: {
+        Row: {
+          caption: string | null
+          created_at: string
+          exif: Json | null
+          id: string
+          organization_id: string
+          phase: string | null
+          project_id: string
+          room_area: string | null
+          storage_path: string
+          taken_at: string | null
+          thumbnail_path: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          exif?: Json | null
+          id?: string
+          organization_id: string
+          phase?: string | null
+          project_id: string
+          room_area?: string | null
+          storage_path: string
+          taken_at?: string | null
+          thumbnail_path?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          exif?: Json | null
+          id?: string
+          organization_id?: string
+          phase?: string | null
+          project_id?: string
+          room_area?: string | null
+          storage_path?: string
+          taken_at?: string | null
+          thumbnail_path?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_photo_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_photo_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_photo_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_financials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_photo_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_task: {
+        Row: {
+          assigned_to_contractor: string | null
+          assigned_to_user: string | null
+          category: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          milestone_id: string | null
+          organization_id: string
+          priority: string
+          project_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_contractor?: string | null
+          assigned_to_user?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          milestone_id?: string | null
+          organization_id: string
+          priority?: string
+          project_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_contractor?: string | null
+          assigned_to_user?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          milestone_id?: string | null
+          organization_id?: string
+          priority?: string
+          project_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_task_assigned_to_contractor_fkey"
+            columns: ["assigned_to_contractor"]
+            isOneToOne: false
+            referencedRelation: "contractor"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_task_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestone"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_task_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_task_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_task_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_financials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_task_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_summary"
             referencedColumns: ["id"]
           },
         ]
@@ -1134,6 +1415,70 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_summary: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          arv_cents: number | null
+          budget_variance_cents: number | null
+          city: string | null
+          created_at: string | null
+          deal_analysis_id: string | null
+          id: string | null
+          milestones_complete: number | null
+          milestones_total: number | null
+          name: string | null
+          organization_id: string | null
+          percent_spent: number | null
+          photos_count: number | null
+          pipeline_phase: string | null
+          pipeline_stage: string | null
+          projected_net_profit_cents: number | null
+          projected_roi_pct: number | null
+          property_id: string | null
+          sqft: number | null
+          stage_changed_at: string | null
+          state: string | null
+          status: string | null
+          target_close_date: string | null
+          tasks_open: number | null
+          thumbnail_url: string | null
+          total_budget_cents: number | null
+          total_spent_cents: number | null
+          updated_at: string | null
+          zip: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_deal_analysis_id_fkey"
+            columns: ["deal_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "deal_analysis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deal_analysis_id_fkey"
+            columns: ["deal_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "deal_analysis_computed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property"
             referencedColumns: ["id"]
           },
         ]
